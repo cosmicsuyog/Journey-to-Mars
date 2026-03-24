@@ -1,0 +1,198 @@
+// ------------------------------
+// Data for all items
+// ------------------------------
+export const evidenceData = [
+    // --- LAUNCH ---
+    {
+        id: 1,
+        number: 'EVIDENCE #01',
+        title: 'Countdown',
+        label: 'LAUNCH',
+        category: 'LAUNCH',
+        img: 'https://i.pinimg.com/736x/19/1b/7b/191b7b7ba92438647136e8cc9c494661.jpg',
+        listImg: 'https://i.pinimg.com/736x/19/1b/7b/191b7b7ba92438647136e8cc9c494661.jpg',
+    },
+    {
+        id: 2,
+        number: 'EVIDENCE #02',
+        title: 'Ignition',
+        label: 'LAUNCH',
+        category: 'LAUNCH',
+        img: 'https://i.pinimg.com/736x/8c/fe/33/8cfe3381df4bbbb51d54bcb50a4199ff.jpg',
+        listImg: 'https://i.pinimg.com/736x/8c/fe/33/8cfe3381df4bbbb51d54bcb50a4199ff.jpg',
+    },
+    {
+        id: 3,
+        number: 'EVIDENCE #03',
+        title: 'Liftoff',
+        label: 'LAUNCH',
+        category: 'LAUNCH',
+        img: 'https://i.pinimg.com/1200x/fe/e6/59/fee659c60a46e8568ac18d0da36a1b50.jpg',
+        listImg: 'https://i.pinimg.com/1200x/fe/e6/59/fee659c60a46e8568ac18d0da36a1b50.jpg',
+    },
+    {
+        id: 4,
+        number: 'EVIDENCE #04',
+        title: 'Ascent',
+        label: 'LAUNCH',
+        category: 'LAUNCH',
+        img: 'https://i.pinimg.com/736x/29/c4/52/29c4523041468c88a3afafaa6cca10e5.jpg',
+        listImg: 'https://i.pinimg.com/736x/29/c4/52/29c4523041468c88a3afafaa6cca10e5.jpg',
+    },
+    {
+        id: 5,
+        number: 'EVIDENCE #05',
+        title: 'Stage Separation',
+        label: 'LAUNCH',
+        category: 'LAUNCH',
+        img: 'https://i.pinimg.com/736x/49/0c/d4/490cd44df5e6eba0cb51cb8c69acd07d.jpg',
+        listImg: 'https://i.pinimg.com/736x/49/0c/d4/490cd44df5e6eba0cb51cb8c69acd07d.jpg',
+    },
+
+
+
+
+
+];
+
+//     // --- SPACE TRAVEL ---
+//     {
+//         id: 6,
+//         number: 'EVIDENCE #06',
+//         title: 'Zero Gravity',
+//         label: 'SPACE TRAVEL',
+//         category: 'SPACE TRAVEL',
+//         img: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1200&q=80',
+//     },
+//     {
+//         id: 7,
+//         number: 'EVIDENCE #07',
+//         title: 'Starlight',
+//         label: 'SPACE TRAVEL',
+//         category: 'SPACE TRAVEL',
+//         img: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1200&q=80',
+//     },
+//     {
+//         id: 8,
+//         number: 'EVIDENCE #08',
+//         title: 'Solar Sails',
+//         label: 'SPACE TRAVEL',
+//         category: 'SPACE TRAVEL',
+//         img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80',
+//     },
+//     {
+//         id: 9,
+//         number: 'EVIDENCE #09',
+//         title: 'Deep Space',
+//         label: 'SPACE TRAVEL',
+//         category: 'SPACE TRAVEL',
+//         img: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200&q=80',
+//     },
+//     {
+//         id: 10,
+//         number: 'EVIDENCE #10',
+//         title: 'Trajectory',
+//         label: 'SPACE TRAVEL',
+//         category: 'SPACE TRAVEL',
+//         img: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=1200&q=80',
+//     },
+
+//     // --- LANDING ---
+//     {
+//         id: 11,
+//         number: 'EVIDENCE #11',
+//         title: 'Orbit Insertion',
+//         label: 'LANDING',
+//         category: 'LANDING',
+//         img: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=1200&q=80',
+//     },
+//     {
+//         id: 12,
+//         number: 'EVIDENCE #12',
+//         title: 'Descent',
+//         label: 'LANDING',
+//         category: 'LANDING',
+//         img: 'https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=1200&q=80',
+//     },
+//     {
+//         id: 13,
+//         number: 'EVIDENCE #13',
+//         title: 'Parachute Deploy',
+//         label: 'LANDING',
+//         category: 'LANDING',
+//         img: 'https://images.unsplash.com/photo-1516849677043-ef67c9557e53?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1516849677043-ef67c9557e53?w=1200&q=80',
+//     },
+//     {
+//         id: 14,
+//         number: 'EVIDENCE #14',
+//         title: 'Retro Rockets',
+//         label: 'LANDING',
+//         category: 'LANDING',
+//         img: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=1200&q=80',
+//     },
+//     {
+//         id: 15,
+//         number: 'EVIDENCE #15',
+//         title: 'Touchdown',
+//         label: 'LANDING',
+//         category: 'LANDING',
+//         img: 'https://images.unsplash.com/photo-1614732484003-ef9881555dc3?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1614732484003-ef9881555dc3?w=1200&q=80',
+//     },
+
+//     // --- EXPLORATION ---
+//     {
+//         id: 16,
+//         number: 'EVIDENCE #16',
+//         title: 'First Steps',
+//         label: 'EXPLORATION',
+//         category: 'EXPLORATION',
+//         img: 'https://images.unsplash.com/photo-1614732484003-ef9881555dc3?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1614732484003-ef9881555dc3?w=1200&q=80',
+//     },
+//     {
+//         id: 17,
+//         number: 'EVIDENCE #17',
+//         title: 'Rover Deployment',
+//         label: 'EXPLORATION',
+//         category: 'EXPLORATION',
+//         img: 'https://images.unsplash.com/photo-1630699144867-37acec97df5a?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1630699144867-37acec97df5a?w=1200&q=80',
+//     },
+//     {
+//         id: 18,
+//         number: 'EVIDENCE #18',
+//         title: 'Geological Survey',
+//         label: 'EXPLORATION',
+//         category: 'EXPLORATION',
+//         img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80',
+//     },
+//     {
+//         id: 19,
+//         number: 'EVIDENCE #19',
+//         title: 'Sample Collection',
+//         label: 'EXPLORATION',
+//         category: 'EXPLORATION',
+//         img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1200&q=80',
+//     },
+//     {
+//         id: 20,
+//         number: 'EVIDENCE #20',
+//         title: 'Habitat Build',
+//         label: 'EXPLORATION',
+//         category: 'EXPLORATION',
+//         img: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=600&q=80',
+//         listImg: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=1200&q=80',
+//     },
+// ];

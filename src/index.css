@@ -1,0 +1,154 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+@font-face {
+    font-family: "ProximaNova, sans-serif";
+    src: url("/Fonts/ProximaNova-Regular.otf") format("opentype");
+    font-style: normal;
+}
+
+@theme {
+    --color-off-black: #222222;
+    --color-bright-orange: #FA8112;
+    --color-cream-color: #F5E7C6;
+    --color-light-cream: #FAF3E1;
+    --color-accent-red: #D62828;
+    --color-text-color: #e0e0e0;
+    --font-proxima: "ProximaNova, sans-serif";
+    --font-poppins: "Poppins, sans-serif";
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    background-color: var(--color-off-black);
+    background-image: url('/bgeffect.jpg');
+    background-repeat: repeat;
+
+    background-size: 200px;
+    background-blend-mode: overlay;
+
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
+
+    color: var(--color-light-cream);
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+html::-webkit-scrollbar {
+    display: none;
+}
+
+html::-webkit-scrollbar-track {
+    display: none;
+}
+
+html::-webkit-scrollbar-thumb {
+    display: none;
+}
+
+@layer utilities {
+    .flex-center {
+        @apply flex items-center justify-center;
+    }
+
+    .col-center {
+        @apply flex flex-col items-center justify-center;
+    }
+
+    .abs-center {
+        @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
+    }
+
+    .general-title {
+        @apply 2xl:text-[8.5rem] md:text-9xl text-5xl font-extrabold uppercase leading-[9vw] tracking-[-.35vw];
+    }
+
+    .floating-nav {
+        background-color: #000;
+        border-radius: 0.5rem;
+        border-width: 1px;
+        border-style: solid;
+        border-color: #000;
+    }
+
+    .indicator-line {
+        height: 0.25rem;
+        width: 1px;
+        border-radius: 9999px;
+        background-color: #fff;
+        transition-property: all;
+        transition-duration: 200ms;
+        transition-timing-function: ease-in-out;
+    }
+
+    .indicator-line.active {
+        animation: indicator-line 0.5s ease infinite;
+        animation-delay: calc(var(--animation-order) * 0.1s);
+    }
+
+    @keyframes indicator-line {
+        0% {
+            height: 4px;
+            transform: translateY(0px);
+        }
+
+        50% {
+            height: 16px;
+            transform: translateY(-4px);
+        }
+
+        100% {
+            height: 4px;
+            transform: translateY(0px);
+        }
+    }
+}
+
+@layer components {
+    .paragraph-line {
+        @apply text-nowrap overflow-hidden;
+    }
+
+    .hero-container {
+        @apply relative w-screen h-dvh overflow-hidden;
+    }
+
+    .hero-content {
+        @apply relative z-10 w-full h-full flex flex-col 2xl:justify-center items-center translate-y-10 2xl:pt-0 md:pt-32 pt-24;
+    }
+
+    .hero-title {
+        @apply text-accent-red 2xl:text-[9.5rem] md:text-[9.5rem] text-[3.3rem] font-bold uppercase leading-[9vw] tracking-[-.35vw] md:leading-[15vw] 2xl:leading-[12vw] 2xl:mb-0 mb-5;
+    }
+
+    .hero-text-scroll {
+        @apply rotate-[-3deg] mb-8 border-[.5vw] border-accent-red;
+    }
+
+    .hero-subtitle {
+        @apply bg-off-black text-nowrap;
+    }
+
+    .hero-scroll-text {
+        @apply absolute bottom-10 left-1/2 -translate-x-1/2 text-white text-center;
+    }
+
+    .hero-scroll-text .scroll-line {
+        @apply w-px h-10 bg-white mx-auto mb-2;
+    }
+
+    h1 {
+        @apply uppercase 2xl:text-[8.5rem] md:text-[6.5rem] text-[3.3rem] font-bold leading-[9vw] tracking-[-.35vw] 2xl:px-[1.2vw] px-3 2xl:pb-[1vw] pb-5 2xl:py-0 py-3;
+    }
+
+    h2 {
+        @apply font-poppins text-center md:max-w-lg max-w-sm px-5 md:text-lg leading-[115%] mt-3;
+    }
+}
