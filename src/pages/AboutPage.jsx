@@ -276,7 +276,7 @@ const AboutPage = () => {
   return (
     <div className="min-h-screen text-white font-mono flex flex-col items-center">
 
-      <img className='w-full ' src="/redmilk.png" alt="" />
+      <img className='  h-[8rem] md:h-auto w-full ' src="/redmilk.png" alt="" />
       {/* Top Bar */}
       <div className="w-full max-w-[1400px] flex justify-between items-center px-6 py-5">
         <div className="flex gap-2">
