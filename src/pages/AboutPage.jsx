@@ -12,15 +12,21 @@ const ACTIVE_HOVER_W = HOVER_W + 30;
 const NORMAL_H = 540;
 const ACTIVE_H = 570;
 const GAP = 12;
-const MOBILE_BREAKPOINT = 768; // px
+const MOBILE_BREAKPOINT = 768;
 
 const AboutPage = () => {
   const [viewMode, setViewMode] = useState('slider');
   const [currentIndex, setCurrentIndex] = useState(2);
   const [hoveredIndex, setHoveredIndex] = useState(-1);
   const [isMobile, setIsMobile] = useState(false);
-  const [carouselIndex, setCarouselIndex] = useState(0); // 0-based index for carousel
-  const [isDragging, setIsDragging] = useState(false);
+
+  // carouselIndex tracks position in the extended array (1..evidenceData.length are the real slides)
+  const [carouselIndex, setCarouselIndex] = useState(1);
+  const carouselIndexRef = useRef(1); // always in sync, safe to read inside callbacks
+
+  const isDraggingRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const currentXPercentRef = useRef(-100); // mirrors the current gsap x% value
 
   const trackRef = useRef(null);
   const sliderWrapRef = useRef(null);
@@ -30,138 +36,143 @@ const AboutPage = () => {
   const carouselContainerRef = useRef(null);
   const carouselTrackRef = useRef(null);
   const carouselAnimRef = useRef(null);
-  
-  // Drag state refs
-  const dragStartX = useRef(0);
-  const dragStartIndex = useRef(0);
-  const dragStartXPercent = useRef(0);
 
-  // Create extended array for infinite loop: [last, ...items, first]
-  const extendedData = [evidenceData[evidenceData.length - 1], ...evidenceData, evidenceData[0]];
-  const extendedCount = extendedData.length;
+  // Extended array: [last, ...items, first]  (indices 0 and extendedCount-1 are clones)
+  const extendedData = [
+    evidenceData[evidenceData.length - 1],
+    ...evidenceData,
+    evidenceData[0],
+  ];
+  const extendedCount = extendedData.length; // evidenceData.length + 2
 
-  // Map carouselIndex (0..extendedCount-1) to actual data index
-  const getRealIndex = (carouselIdx) => {
-    if (carouselIdx === 0) return evidenceData.length - 1;
-    if (carouselIdx === extendedCount - 1) return 0;
-    return carouselIdx - 1;
+  // Map an extendedData index to the real evidenceData index
+  const getRealIndex = (extIdx) => {
+    if (extIdx === 0) return evidenceData.length - 1;
+    if (extIdx === extendedCount - 1) return 0;
+    return extIdx - 1;
   };
 
-  // The actual index used for active card styling (from original data)
   const activeRealIndex = getRealIndex(carouselIndex);
 
-  // Function to set carousel index with infinite loop handling
-  const setCarouselIndexSmooth = (newIdx, animate = true) => {
-    if (newIdx < 0 || newIdx >= extendedCount) return;
+  // ─── Core carousel navigator ────────────────────────────────────────────────
+  const goToIndex = useCallback(
+    (newIdx, animate = true) => {
+      if (!carouselTrackRef.current) return;
+      if (carouselAnimRef.current) carouselAnimRef.current.kill();
 
-    setCarouselIndex(newIdx);
-    if (!carouselTrackRef.current) return;
+      const containerWidth = carouselContainerRef.current?.offsetWidth ?? 0;
+      const targetX = -newIdx * containerWidth;
 
-    if (carouselAnimRef.current) carouselAnimRef.current.kill();
+      currentXPercentRef.current = targetX;
+      carouselIndexRef.current = newIdx;
+      setCarouselIndex(newIdx);
 
-    const translateX = -newIdx * 100; // 100% per slide (width of container)
-    if (animate) {
-      carouselAnimRef.current = gsap.to(carouselTrackRef.current, {
-        x: `${translateX}%`,
-        duration: 0.4,
-        ease: 'power2.out',
-        onComplete: () => {
-          // After animation, if we are at the clone boundaries, jump to real position without animation
-          if (newIdx === 0) {
-            setCarouselIndex(evidenceData.length);
-            gsap.set(carouselTrackRef.current, { x: `-${evidenceData.length * 100}%` });
-          } else if (newIdx === extendedCount - 1) {
-            setCarouselIndex(1);
-            gsap.set(carouselTrackRef.current, { x: `-${1 * 100}%` });
-          }
-        },
-      });
-    } else {
-      gsap.set(carouselTrackRef.current, { x: `${translateX}%` });
-    }
-  };
+      const doJump = () => {
+        // After animating INTO a clone, silently teleport to its real counterpart
+        if (newIdx === 0) {
+          // clone-of-last → jump to real last
+          const realIdx = evidenceData.length;
+          const jumpX = -realIdx * containerWidth;
+          currentXPercentRef.current = jumpX;
+          carouselIndexRef.current = realIdx;
+          setCarouselIndex(realIdx);
+          gsap.set(carouselTrackRef.current, { x: jumpX });
+        } else if (newIdx === extendedCount - 1) {
+          // clone-of-first → jump to real first
+          const realIdx = 1;
+          const jumpX = -realIdx * containerWidth;
+          currentXPercentRef.current = jumpX;
+          carouselIndexRef.current = realIdx;
+          setCarouselIndex(realIdx);
+          gsap.set(carouselTrackRef.current, { x: jumpX });
+        }
+      };
 
-  // Next / Prev functions for carousel
-  const nextSlide = () => setCarouselIndexSmooth(carouselIndex + 1);
-  const prevSlide = () => setCarouselIndexSmooth(carouselIndex - 1);
+      if (animate) {
+        carouselAnimRef.current = gsap.to(carouselTrackRef.current, {
+          x: targetX,
+          duration: 0.4,
+          ease: 'power2.out',
+          onComplete: doJump,
+        });
+      } else {
+        gsap.set(carouselTrackRef.current, { x: targetX });
+        // silent init — always a real index, no jump needed
+      }
+    },
+    [extendedCount]
+  );
 
-  // Carousel drag handlers (fixed)
+  // Read index from ref so callbacks never go stale between renders
+  const nextSlide = useCallback(() => goToIndex(carouselIndexRef.current + 1), [goToIndex]);
+  const prevSlide = useCallback(() => goToIndex(carouselIndexRef.current - 1), [goToIndex]);
+
+  // ─── Drag / pointer events ───────────────────────────────────────────────────
   const handleCarouselPointerDown = (e) => {
     if (!carouselTrackRef.current) return;
-    e.preventDefault();
-    
-    // Kill any ongoing animation
+    e.currentTarget.setPointerCapture(e.pointerId); // keep receiving events if pointer leaves
     if (carouselAnimRef.current) carouselAnimRef.current.kill();
-    
-    // Get current transform x percentage
-    const currentX = parseFloat(gsap.getProperty(carouselTrackRef.current, "x"));
-    dragStartXPercent.current = isNaN(currentX) ? -carouselIndex * 100 : currentX;
-    dragStartIndex.current = carouselIndex;
-    dragStartX.current = e.clientX;
-    
-    setIsDragging(true);
-    
-    // Attach move/up listeners to window to capture events outside container
-    window.addEventListener('pointermove', handleCarouselPointerMove);
-    window.addEventListener('pointerup', handleCarouselPointerUp);
+    isDraggingRef.current = true;
+    dragStartXRef.current = e.clientX;
   };
 
   const handleCarouselPointerMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    
-    const deltaX = e.clientX - dragStartX.current;
-    const containerWidth = carouselContainerRef.current?.offsetWidth || 0;
-    const deltaPercent = (deltaX / containerWidth) * 100;
-    const newXPercent = dragStartXPercent.current + deltaPercent;
-    
-    gsap.set(carouselTrackRef.current, { x: `${newXPercent}%` });
+    if (!isDraggingRef.current || !carouselTrackRef.current) return;
+    const containerWidth = carouselContainerRef.current?.offsetWidth ?? 1;
+    const deltaX = e.clientX - dragStartXRef.current;
+    const newX = currentXPercentRef.current + deltaX;
+    gsap.set(carouselTrackRef.current, { x: newX });
   };
 
   const handleCarouselPointerUp = (e) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    
-    // Remove event listeners
-    window.removeEventListener('pointermove', handleCarouselPointerMove);
-    window.removeEventListener('pointerup', handleCarouselPointerUp);
-    
-    const deltaX = e.clientX - dragStartX.current;
-    const threshold = 30; // minimum drag distance in pixels to trigger slide
-    
-    if (Math.abs(deltaX) > threshold) {
-      if (deltaX > 0) {
-        // Swipe right -> previous slide
-        setCarouselIndexSmooth(dragStartIndex.current - 1);
-      } else {
-        // Swipe left -> next slide
-        setCarouselIndexSmooth(dragStartIndex.current + 1);
-      }
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    const deltaX = e.clientX - dragStartXRef.current;
+    const THRESHOLD = 50; // px
+    if (deltaX < -THRESHOLD) {
+      nextSlide();
+    } else if (deltaX > THRESHOLD) {
+      prevSlide();
     } else {
-      // Snap back to original slide
-      setCarouselIndexSmooth(dragStartIndex.current);
+      // Snap back to current slide
+      goToIndex(carouselIndexRef.current);
     }
   };
 
-  // Detect mobile / desktop
+  // ─── Detect mobile ───────────────────────────────────────────────────────────
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Reset carousel index when toggling to slider mode on mobile
+  // ─── Init carousel position when switching to mobile slider ─────────────────
   useEffect(() => {
     if (viewMode === 'slider' && isMobile) {
-      // Initialize carousel at the first original slide (index 1 in extended array)
-      setCarouselIndexSmooth(1, false);
+      // Start at index 1 (first real slide) with no animation
+      const startIdx = 1;
+      const containerWidth = carouselContainerRef.current?.offsetWidth ?? 0;
+      const targetX = -startIdx * containerWidth;
+      currentXPercentRef.current = targetX;
+      setCarouselIndex(startIdx);
+      if (carouselTrackRef.current) {
+        gsap.set(carouselTrackRef.current, { x: targetX });
+      }
     }
   }, [viewMode, isMobile]);
 
-  // Desktop layout (static, no slide) – unchanged
+  // Also set position after the carousel DOM mounts (ref available)
+  useEffect(() => {
+    if (carouselTrackRef.current && isMobile) {
+      const containerWidth = carouselContainerRef.current?.offsetWidth ?? 0;
+      const targetX = -1 * containerWidth; // index 1 = first real slide
+      currentXPercentRef.current = targetX;
+      gsap.set(carouselTrackRef.current, { x: targetX });
+    }
+  }, [isMobile]); // runs when mobile state first resolves
+
+  // ─── Desktop layout helpers (unchanged) ─────────────────────────────────────
   const getCardWidth = useCallback(
     (idx) => {
       const isActive = idx === currentIndex;
@@ -176,21 +187,17 @@ const AboutPage = () => {
   const layoutCards = useCallback(
     (duration = 0.6) => {
       if (!sliderWrapRef.current || !trackRef.current) return;
-
       const wrapWidth = sliderWrapRef.current.offsetWidth - 60;
       const widths = cardRefs.current.map((_, i) => getCardWidth(i));
-
       let activeLeft = 0;
       for (let i = 0; i < currentIndex; i++) activeLeft += widths[i] + GAP;
       const offsetX = wrapWidth / 2 - activeLeft - widths[currentIndex] / 2;
-
       let x = offsetX;
       const positions = widths.map((w) => {
         const left = x;
         x += w + GAP;
         return left;
       });
-
       cardRefs.current.forEach((card, i) => {
         if (!card) return;
         const isActive = i === currentIndex;
@@ -208,13 +215,10 @@ const AboutPage = () => {
     [currentIndex, getCardWidth]
   );
 
-  // Desktop effect for cross animation – unchanged
   useEffect(() => {
     if (viewMode !== 'slider' || isMobile) return;
-
     crossTimelines.current.forEach((tl) => tl?.kill());
     crossTimelines.current = [];
-
     cardRefs.current.forEach((card, idx) => {
       if (!card) return;
       const ch = card.querySelector('.cross-h');
@@ -223,19 +227,16 @@ const AboutPage = () => {
       const cv2 = card.querySelector('.cross-v2');
       const cc = card.querySelector('.cross-center');
       if (!ch || !ch2 || !cv || !cv2 || !cc) return;
-
       const tl = gsap.timeline({ paused: true });
       tl.to(ch, { width: '50%', duration: 0.35, ease: 'power2.out' }, 0)
         .to(ch2, { width: '50%', duration: 0.35, ease: 'power2.out' }, 0)
         .to(cv, { height: '45%', duration: 0.35, ease: 'power2.out' }, 0)
         .to(cv2, { height: '45%', duration: 0.35, ease: 'power2.out' }, 0)
         .to(cc, { opacity: 1, scale: 1, rotation: 0, duration: 0.3, ease: 'back.out(2)' }, 0.15);
-
       crossTimelines.current[idx] = tl;
     });
   }, [viewMode, isMobile]);
 
-  // Desktop: re-layout on index/hover/resize – unchanged
   useEffect(() => {
     if (viewMode === 'slider' && !isMobile) layoutCards(0.65);
   }, [currentIndex, hoveredIndex, viewMode, isMobile, layoutCards]);
@@ -248,21 +249,16 @@ const AboutPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, [viewMode, isMobile, layoutCards]);
 
-  // Desktop handlers – unchanged
   const handleCardMouseEnter = (idx) => {
     setHoveredIndex(idx);
     crossTimelines.current[idx]?.play();
   };
-
   const handleCardMouseLeave = (idx) => {
     setHoveredIndex(-1);
     crossTimelines.current[idx]?.reverse();
   };
 
-  const showSlider = () => {
-    setViewMode('slider');
-  };
-
+  const showSlider = () => setViewMode('slider');
   const showList = () => {
     setViewMode('list');
     setTimeout(() => {
@@ -274,24 +270,21 @@ const AboutPage = () => {
     }, 50);
   };
 
-  const handleListClick = (item) => {
-    alert(`Decrypting: ${item.title}`);
-  };
-
-  const handleCardClick = (item) => {
-    alert(`Decrypting: ${item.title}`);
-  };
+  const handleListClick = (item) => alert(`Decrypting: ${item.title}`);
+  const handleCardClick = (item) => alert(`Decrypting: ${item.title}`);
 
   return (
     <div className="min-h-screen text-white font-mono flex flex-col items-center">
-      {/* Top Bar – unchanged */}
+
+      <img className='w-full ' src="/redmilk.png" alt="" />
+      {/* Top Bar */}
       <div className="w-full max-w-[1400px] flex justify-between items-center px-6 py-5">
         <div className="flex gap-2">
           <button
             onClick={showSlider}
             className={`flex items-center gap-1.5 border px-3 py-2 text-[11px] tracking-[2px] uppercase transition-all ${viewMode === 'slider'
-                ? 'bg-[#c0392b] border-[#c0392b] text-white'
-                : 'border-[#333] text-[#888] hover:bg-[#c0392b] hover:border-[#c0392b] hover:text-white'
+              ? 'bg-[#c0392b] border-[#c0392b] text-white'
+              : 'border-[#333] text-[#888] hover:bg-[#c0392b] hover:border-[#c0392b] hover:text-white'
               }`}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
@@ -305,8 +298,8 @@ const AboutPage = () => {
           <button
             onClick={showList}
             className={`flex items-center gap-1.5 border px-3 py-2 text-[11px] tracking-[2px] uppercase transition-all ${viewMode === 'list'
-                ? 'bg-[#c0392b] border-[#c0392b] text-white'
-                : 'border-[#333] text-[#888] hover:bg-[#c0392b] hover:border-[#c0392b] hover:text-white'
+              ? 'bg-[#c0392b] border-[#c0392b] text-white'
+              : 'border-[#333] text-[#888] hover:bg-[#c0392b] hover:border-[#c0392b] hover:text-white'
               }`}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
@@ -317,7 +310,8 @@ const AboutPage = () => {
             LIST
           </button>
         </div>
-        {/* On mobile, show navigation buttons */}
+
+        {/* Mobile nav arrows */}
         {viewMode === 'slider' && isMobile && (
           <div className="flex gap-1.5">
             <button
@@ -340,7 +334,7 @@ const AboutPage = () => {
       {viewMode === 'slider' && (
         <>
           {!isMobile ? (
-            // Desktop: static slider – unchanged
+            // ── Desktop static slider ──────────────────────────────────────────
             <div
               ref={sliderWrapRef}
               className="w-full max-w-[1400px] overflow-hidden px-[30px] pb-10"
@@ -363,19 +357,15 @@ const AboutPage = () => {
                         onDragStart={(e) => e.preventDefault()}
                         className="absolute inset-0 w-full h-full object-cover transition-all duration-500 hover:scale-105 grayscale-[80%] brightness-60 hover:grayscale-[30%] hover:brightness-75"
                       />
-                      {/* Corner dots */}
                       <div className="absolute top-3 left-3 flex gap-1">
                         {[...Array(3)].map((_, i) => (
                           <span key={i} className="w-1 h-1 bg-[#c0392b] opacity-70" />
                         ))}
                       </div>
-                      {/* Top-right bracket */}
                       <div className="absolute top-2.5 right-2.5 w-5 h-5 border-t border-r border-white/30 transition-colors duration-300 group-hover:border-[#c0392b]" />
-                      {/* Vertical rotated label */}
                       <span className="absolute top-1/2 right-3.5 -translate-y-1/2 rotate-90 text-[9px] tracking-[3px] text-[#c0392b] uppercase whitespace-nowrap opacity-80">
                         {item.label}
                       </span>
-                      {/* Cross overlay elements */}
                       <div className="absolute inset-0 pointer-events-none">
                         <div className="cross-line cross-h absolute top-1/2 left-0 w-0 h-px -translate-y-1/2 bg-white/20" />
                         <div className="cross-line cross-h2 absolute top-1/2 right-0 w-0 h-px -translate-y-1/2 bg-white/20" />
@@ -386,7 +376,6 @@ const AboutPage = () => {
                           <div className="absolute h-0.5 w-full top-1/2 left-0 -translate-y-1/2 bg-white/55" />
                         </div>
                       </div>
-                      {/* Bottom info */}
                       <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
                         <div className="text-[10px] tracking-[2px] text-[#c0392b] uppercase mb-1.5">
                           {item.number}
@@ -405,13 +394,22 @@ const AboutPage = () => {
               </div>
             </div>
           ) : (
-            // Mobile: infinite carousel (fixed)
+            // ── Mobile infinite carousel ───────────────────────────────────────
             <div
               ref={carouselContainerRef}
               className="w-full overflow-hidden pb-10"
               style={{ touchAction: 'pan-y pinch-zoom' }}
               onPointerDown={handleCarouselPointerDown}
+              onPointerMove={handleCarouselPointerMove}
+              onPointerUp={handleCarouselPointerUp}
+              onPointerCancel={handleCarouselPointerUp} // cancel = treat as pointer-up
             >
+              {/*
+               * FIX: The track is (extendedCount * 100)% of the CONTAINER,
+               * and each slide is (100 / extendedCount)% of the TRACK,
+               * so each slide = 100% of the container — i.e. full-width.
+               * We move with gsap x in px (not %) so sizes are always exact.
+               */}
               <div
                 ref={carouselTrackRef}
                 className="flex"
@@ -434,21 +432,17 @@ const AboutPage = () => {
                           alt={item.title}
                           draggable="false"
                           onDragStart={(e) => e.preventDefault()}
-                          className="absolute inset-0 w-full h-full object-cover transition-all duration-500 grayscale-[80%] brightness-60"
+                          className="absolute inset-0 w-full h-full object-cover grayscale-[80%] brightness-60"
                         />
-                        {/* Corner dots */}
                         <div className="absolute top-3 left-3 flex gap-1">
                           {[...Array(3)].map((_, i) => (
                             <span key={i} className="w-1 h-1 bg-[#c0392b] opacity-70" />
                           ))}
                         </div>
-                        {/* Top-right bracket */}
                         <div className="absolute top-2.5 right-2.5 w-5 h-5 border-t border-r border-white/30" />
-                        {/* Vertical rotated label */}
                         <span className="absolute top-1/2 right-3.5 -translate-y-1/2 rotate-90 text-[9px] tracking-[3px] text-[#c0392b] uppercase whitespace-nowrap opacity-80">
                           {item.label}
                         </span>
-                        {/* Bottom info */}
                         <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
                           <div className="text-[10px] tracking-[2px] text-[#c0392b] uppercase mb-1.5">
                             {item.number}
@@ -456,8 +450,8 @@ const AboutPage = () => {
                           <div className="font-['Anton',sans-serif] text-3xl text-gray-300 leading-none">
                             {item.title}
                           </div>
-                          <div className="h-0.5 bg-[#c0392b] mt-2.5 scale-x-0 transition-transform duration-500 origin-left group-hover:scale-x-100" />
-                          <div className="text-[9px] tracking-[2px] text-white/50 uppercase mt-2 opacity-0 translate-y-1 transition-all duration-300 delay-100 group-hover:opacity-100 group-hover:translate-y-0">
+                          <div className="h-0.5 bg-[#c0392b] mt-2.5" />
+                          <div className="text-[9px] tracking-[2px] text-white/50 uppercase mt-2">
                             [ CLICK TO DECRYPT ]
                           </div>
                         </div>
@@ -471,7 +465,7 @@ const AboutPage = () => {
         </>
       )}
 
-      {/* List View – unchanged */}
+      {/* List View */}
       {viewMode === 'list' && (
         <div className="w-full max-w-[1400px] px-[30px] pb-16 flex flex-col">
           {evidenceData.map((item, idx) => (
@@ -493,7 +487,10 @@ const AboutPage = () => {
                 <div className="flex items-center gap-5 flex-1">
                   <div className="flex flex-col gap-1">
                     {[...Array(4)].map((_, i) => (
-                      <span key={i} className="w-1 h-1 bg-[#c0392b] opacity-70 group-hover:opacity-100" />
+                      <span
+                        key={i}
+                        className="w-1 h-1 bg-[#c0392b] opacity-70 group-hover:opacity-100"
+                      />
                     ))}
                   </div>
                   <div>
