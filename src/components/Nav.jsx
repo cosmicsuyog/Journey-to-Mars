@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useWindowScroll } from 'react-use';
+import { useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
 
 const navItems = ["Launch", "Space Travel", "Landing", "Exploration"];
@@ -9,26 +10,25 @@ const Nav = () => {
   const [isIndicatorActive, setIndicatorActive] = useState(false);
   const navContainerRef = useRef(null);
   const audioElementRef = useRef(null);
-
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [isNavVisible, setNavVisible] = useState(true);
+  const [isNavVisible, setNavVisible] = useState(false);
   const { y: currentScrollY } = useWindowScroll();
-
   const toggleAudioIndicator = () => {
     setAudioPlaying(prev => !prev);
     setIndicatorActive(prev => !prev);
   };
 
   useEffect(() => {
-    if (currentScrollY === 0) {
-      setNavVisible(true);
+    // Hide nav entirely while inside the hero section (before scrolling down ~80% of screen)
+    if (currentScrollY < window.innerHeight * 0.8) {
+      setNavVisible(false);
       navContainerRef.current?.classList.remove("floating-nav");
     } else if (currentScrollY > lastScrollY) {
       setNavVisible(false);
       navContainerRef.current?.classList.add("floating-nav");
     } else if (currentScrollY < lastScrollY) {
       setNavVisible(true);
-      navContainerRef.current?.classList.remove("floating-nav");
+      navContainerRef.current?.classList.add("floating-nav");
     }
     setLastScrollY(currentScrollY);
   }, [currentScrollY, lastScrollY]);

@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import "tailwindcss";
 
 @font-face {
     font-family: "ProximaNova, sans-serif";
@@ -8,7 +8,7 @@
 }
 
 @theme {
-    --color-off-black: #222222;
+    --color-off-black: #18120F;
     --color-bright-orange: #FA8112;
     --color-cream-color: #F5E7C6;
     --color-light-cream: #FAF3E1;
@@ -25,13 +25,13 @@ body {
     box-sizing: border-box;
 
     background-color: var(--color-off-black);
-    background-image: url('/bgeffect.jpg');
-    background-repeat: repeat;
+    /* background-image: url('/bgeffect.jpg'); */
+    /* background-repeat: repeat; */
 
-    background-size: 200px;
-    background-blend-mode: overlay;
+    /* background-size: 200px; */
+    /* background-blend-mode: overlay; */
 
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4);
+    /* box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.4); */
 
     color: var(--color-light-cream);
     overflow-x: hidden;

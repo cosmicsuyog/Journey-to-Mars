@@ -274,17 +274,16 @@ const AboutPage = () => {
   const handleCardClick = (item) => alert(`Decrypting: ${item.title}`);
 
   return (
-    <div className="min-h-screen text-white font-mono flex flex-col items-center">
+    <div className="min-h-screen text-white font-mono flex flex-col justify-center items-center">
 
-      <img className='  h-[8rem] md:h-auto w-full ' src="/redmilk.png" alt="" />
       {/* Top Bar */}
       <div className="w-full max-w-[1400px] flex justify-between items-center px-6 py-5">
         <div className="flex gap-2">
           <button
             onClick={showSlider}
             className={`flex items-center gap-1.5 border px-3 py-2 text-[11px] tracking-[2px] uppercase transition-all ${viewMode === 'slider'
-              ? 'bg-[#c0392b] border-[#c0392b] text-white'
-              : 'border-[#333] text-[#888] hover:bg-[#c0392b] hover:border-[#c0392b] hover:text-white'
+              ? 'bg-[#E76F2E] border-[#E76F2E] text-white'
+              : 'border-[#333] text-[#888] hover:bg-[#E76F2E] hover:border-[#E76F2E] hover:text-white'
               }`}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
@@ -298,8 +297,8 @@ const AboutPage = () => {
           <button
             onClick={showList}
             className={`flex items-center gap-1.5 border px-3 py-2 text-[11px] tracking-[2px] uppercase transition-all ${viewMode === 'list'
-              ? 'bg-[#c0392b] border-[#c0392b] text-white'
-              : 'border-[#333] text-[#888] hover:bg-[#c0392b] hover:border-[#c0392b] hover:text-white'
+              ? 'bg-[#E76F2E] border-[#E76F2E] text-white'
+              : 'border-[#333] text-[#888] hover:bg-[#E76F2E] hover:border-[#E76F2E] hover:text-white'
               }`}
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
@@ -316,13 +315,13 @@ const AboutPage = () => {
           <div className="flex gap-1.5">
             <button
               onClick={prevSlide}
-              className="w-11 h-11 border border-[#333] text-white text-xl flex items-center justify-center transition-all hover:border-[#c0392b] hover:text-[#c0392b]"
+              className="w-11 h-11 border border-[#333] text-white text-xl flex items-center justify-center transition-all hover:border-[#E76F2E] hover:text-[#E76F2E]"
             >
               ‹
             </button>
             <button
               onClick={nextSlide}
-              className="w-11 h-11 border border-[#333] text-white text-xl flex items-center justify-center transition-all hover:border-[#c0392b] hover:text-[#c0392b]"
+              className="w-11 h-11 border border-[#333] text-white text-xl flex items-center justify-center transition-all hover:border-[#E76F2E] hover:text-[#E76F2E]"
             >
               ›
             </button>
@@ -359,11 +358,11 @@ const AboutPage = () => {
                       />
                       <div className="absolute top-3 left-3 flex gap-1">
                         {[...Array(3)].map((_, i) => (
-                          <span key={i} className="w-1 h-1 bg-[#c0392b] opacity-70" />
+                          <span key={i} className="w-1 h-1 bg-[#E76F2E] opacity-70" />
                         ))}
                       </div>
-                      <div className="absolute top-2.5 right-2.5 w-5 h-5 border-t border-r border-white/30 transition-colors duration-300 group-hover:border-[#c0392b]" />
-                      <span className="absolute top-1/2 right-3.5 -translate-y-1/2 rotate-90 text-[9px] tracking-[3px] text-[#c0392b] uppercase whitespace-nowrap opacity-80">
+                      <div className="absolute top-2.5 right-2.5 w-5 h-5 border-t border-r border-white/30 transition-colors duration-300 group-hover:border-[#E76F2E]" />
+                      <span className="absolute top-1/2 right-3.5 -translate-y-1/2 rotate-90 text-[9px] tracking-[3px] text-[#E76F2E] uppercase whitespace-nowrap opacity-80">
                         {item.label}
                       </span>
                       <div className="absolute inset-0 pointer-events-none">
@@ -377,13 +376,13 @@ const AboutPage = () => {
                         </div>
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-                        <div className="text-[10px] tracking-[2px] text-[#c0392b] uppercase mb-1.5">
+                        <div className="text-[10px] tracking-[2px] text-[#E76F2E] uppercase mb-1.5">
                           {item.number}
                         </div>
                         <div className="font-['Anton',sans-serif] text-3xl text-gray-300 leading-none transition-colors duration-300 group-hover:text-white">
                           {item.title}
                         </div>
-                        <div className="h-0.5 bg-[#c0392b] mt-2.5 scale-x-0 transition-transform duration-500 origin-left group-hover:scale-x-100" />
+                        <div className="h-0.5 bg-[#E76F2E] mt-2.5 scale-x-0 transition-transform duration-500 origin-left group-hover:scale-x-100" />
                         <div className="text-[9px] tracking-[2px] text-white/50 uppercase mt-2 opacity-0 translate-y-1 transition-all duration-300 delay-100 group-hover:opacity-100 group-hover:translate-y-0">
                           [ CLICK TO DECRYPT ]
                         </div>
@@ -436,21 +435,21 @@ const AboutPage = () => {
                         />
                         <div className="absolute top-3 left-3 flex gap-1">
                           {[...Array(3)].map((_, i) => (
-                            <span key={i} className="w-1 h-1 bg-[#c0392b] opacity-70" />
+                            <span key={i} className="w-1 h-1 bg-[#E76F2E] opacity-70" />
                           ))}
                         </div>
                         <div className="absolute top-2.5 right-2.5 w-5 h-5 border-t border-r border-white/30" />
-                        <span className="absolute top-1/2 right-3.5 -translate-y-1/2 rotate-90 text-[9px] tracking-[3px] text-[#c0392b] uppercase whitespace-nowrap opacity-80">
+                        <span className="absolute top-1/2 right-3.5 -translate-y-1/2 rotate-90 text-[9px] tracking-[3px] text-[#E76F2E] uppercase whitespace-nowrap opacity-80">
                           {item.label}
                         </span>
                         <div className="absolute bottom-0 left-0 right-0 p-5 pb-6 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-                          <div className="text-[10px] tracking-[2px] text-[#c0392b] uppercase mb-1.5">
+                          <div className="text-[10px] tracking-[2px] text-[#E76F2E] uppercase mb-1.5">
                             {item.number}
                           </div>
                           <div className="font-['Anton',sans-serif] text-3xl text-gray-300 leading-none">
                             {item.title}
                           </div>
-                          <div className="h-0.5 bg-[#c0392b] mt-2.5" />
+                          <div className="h-0.5 bg-[#E76F2E] mt-2.5" />
                           <div className="text-[9px] tracking-[2px] text-white/50 uppercase mt-2">
                             [ CLICK TO DECRYPT ]
                           </div>
@@ -482,19 +481,19 @@ const AboutPage = () => {
                 onDragStart={(e) => e.preventDefault()}
                 className="absolute inset-0 w-full h-full object-cover object-center grayscale-[85%] brightness-45 transition-all duration-500 group-hover:grayscale-[20%] group-hover:brightness-55 group-hover:scale-105"
               />
-              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#c0392b] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#E76F2E] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="absolute inset-0 flex items-center px-6 bg-gradient-to-r from-black/80 via-black/30 to-black/60">
                 <div className="flex items-center gap-5 flex-1">
                   <div className="flex flex-col gap-1">
                     {[...Array(4)].map((_, i) => (
                       <span
                         key={i}
-                        className="w-1 h-1 bg-[#c0392b] opacity-70 group-hover:opacity-100"
+                        className="w-1 h-1 bg-[#E76F2E] opacity-70 group-hover:opacity-100"
                       />
                     ))}
                   </div>
                   <div>
-                    <div className="text-[9px] tracking-[3px] text-[#c0392b] uppercase">
+                    <div className="text-[9px] tracking-[3px] text-[#E76F2E] uppercase">
                       {item.number}
                     </div>
                     <div className="font-['Anton',sans-serif] text-4xl text-gray-400 leading-none transition-colors group-hover:text-white">
@@ -509,12 +508,12 @@ const AboutPage = () => {
                   <span className="text-[9px] tracking-[2px] text-white/30 uppercase flex items-center gap-2 whitespace-nowrap opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-white/60">
                     [ CLICK TO DECRYPT ]
                   </span>
-                  <div className="w-6 h-6 border border-white/25 flex items-center justify-center text-sm text-white/40 transition-all group-hover:border-[#c0392b] group-hover:text-[#c0392b] group-hover:bg-[#c0392b]/10">
+                  <div className="w-6 h-6 border border-white/25 flex items-center justify-center text-sm text-white/40 transition-all group-hover:border-[#E76F2E] group-hover:text-[#E76F2E] group-hover:bg-[#E76F2E]/10">
                     →
                   </div>
                 </div>
               </div>
-              <div className="absolute bottom-0 left-0 h-0.5 w-full bg-[#c0392b] scale-x-0 origin-left transition-transform duration-500 group-hover:scale-x-100" />
+              <div className="absolute bottom-0 left-0 h-0.5 w-full bg-[#E76F2E] scale-x-0 origin-left transition-transform duration-500 group-hover:scale-x-100" />
             </div>
           ))}
         </div>
@@ -532,7 +531,7 @@ const AboutPage = () => {
         }
         .card {
           background: linear-gradient(#111, #111) padding-box,
-                      conic-gradient(from var(--rotate), #0a0a0a 0%, #0a0a0a 30%, rgba(180,40,40,0.55) 45%, #c0392b 50%, rgba(180,40,40,0.55) 55%, #0a0a0a 70%, #0a0a0a 100%) border-box;
+                      conic-gradient(from var(--rotate), #0a0a0a 0%, #0a0a0a 30%, rgba(231,111,46,0.55) 45%, #E76F2E 50%, rgba(231,111,46,0.55) 55%, #0a0a0a 70%, #0a0a0a 100%) border-box;
           animation: borderSpin 4s linear infinite;
           animation-play-state: paused;
         }

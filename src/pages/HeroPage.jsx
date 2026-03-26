@@ -1,252 +1,258 @@
 import React, { useRef, useEffect } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import gsap from 'gsap';
-import { SplitText } from 'gsap/SplitText';
-import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 
-gsap.registerPlugin(ScrambleTextPlugin);
+// ─── Icons (unchanged) ────────────────────────────────────────────────────────
+const CompassStarIcon = () => (
+    <svg viewBox="0 0 32 32" style={{ width: 28, height: 28, fill: '#F6F3E7', flexShrink: 0 }}>
+        <path d="M16 0 L18.8 13.2 L32 16 L18.8 18.8 L16 32 L13.2 18.8 L0 16 L13.2 13.2 Z" />
+        <circle cx="16" cy="16" r="3.5" fill="#18120F" />
+    </svg>
+);
 
-const defaultChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const PlanetIconSVG = () => (
+    <svg
+        viewBox="0 0 24 24"
+        style={{ width: 17, height: 17, flexShrink: 0 }}
+        fill="none"
+        stroke="rgba(246,243,231,0.65)"
+        strokeWidth="1.6"
+    >
+        <circle cx="12" cy="12" r="7.5" />
+        <ellipse cx="12" cy="12" rx="11.5" ry="3.5" strokeDasharray="2.5 2.5" />
+    </svg>
+);
 
-const HeroPage = () => {
-    const titleRef = useRef(null);
-    const subtitleRef = useRef(null);
-    const canvasRef = useRef(null);
+// ─── Mars 3D Component (unchanged) ──────────────────────────────────────────
+function Mars3D({ onReady }) {
+    const groupRef = useRef();
+    const readyFired = useRef(false);
 
-    // --- Star field animation (canvas) ---
     useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        let cancelled = false;
 
-        let ctx = canvas.getContext('2d');
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        const STAR_COUNT = 300;
-        const MAX_OFFSET = 40;
-        let mouseX = 0.5;
-        let mouseY = 0.5;
-        let animationId;
+        const texPromise = new Promise((resolve, reject) => {
+            new THREE.TextureLoader().load(
+                '/marrs/textures/Material.002_diffuse.jpeg',
+                resolve,
+                undefined,
+                reject
+            );
+        });
 
-        const stars = [];
-        for (let i = 0; i < STAR_COUNT; i++) {
-            stars.push({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                radius: Math.random() * 2 + 0.5,
-                brightness: Math.random() * 0.5 + 0.3,
-                vx: (Math.random() - 0.5) * 0.2,
-                vy: (Math.random() - 0.5) * 0.2,
-            });
-        }
+        const gltfPromise = new Promise((resolve, reject) => {
+            new GLTFLoader().load('/marrs/scene.gltf', resolve, undefined, reject);
+        });
 
-        const handleResize = () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            for (let i = 0; i < stars.length; i++) {
-                stars[i].x = (stars[i].x / (canvas.width || 1)) * width;
-                stars[i].y = (stars[i].y / (canvas.height || 1)) * height;
-            }
-        };
+        Promise.all([texPromise, gltfPromise])
+            .then(([texture, gltf]) => {
+                if (cancelled) return;
 
-        const handleMouseMove = (e) => {
-            mouseX = e.clientX / width;
-            mouseY = e.clientY / height;
-        };
+                texture.colorSpace = THREE.SRGBColorSpace;
+                texture.needsUpdate = true;
 
-        const animate = () => {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, width, height);
-            const offsetX = (mouseX - 0.5) * MAX_OFFSET * 2;
-            const offsetY = (mouseY - 0.5) * MAX_OFFSET * 2;
+                const model = gltf.scene;
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = new THREE.MeshStandardMaterial({
+                            map: texture,
+                            roughness: 0.88,
+                            metalness: 0.05,
+                        });
+                        child.material.needsUpdate = true;
+                    }
+                });
 
-            for (let star of stars) {
-                star.x += star.vx;
-                star.y += star.vy;
-                if (star.x < 0) star.x = width;
-                if (star.x > width) star.x = 0;
-                if (star.y < 0) star.y = height;
-                if (star.y > height) star.y = 0;
+                const box = new THREE.Box3().setFromObject(model);
+                const size = new THREE.Vector3();
+                const center = new THREE.Vector3();
+                box.getSize(size);
+                box.getCenter(center);
+                model.position.sub(center);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                model.scale.setScalar(2 / maxDim);
 
-                if (Math.random() < 0.01) {
-                    star.vx += (Math.random() - 0.5) * 0.1;
-                    star.vy += (Math.random() - 0.5) * 0.1;
-                    star.vx = Math.min(Math.max(star.vx, -0.5), 0.5);
-                    star.vy = Math.min(Math.max(star.vy, -0.5), 0.5);
+                if (groupRef.current) {
+                    groupRef.current.add(model);
                 }
 
-                const drawX = star.x + offsetX;
-                const drawY = star.y + offsetY;
-                ctx.beginPath();
-                ctx.arc(drawX, drawY, star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
-                ctx.fill();
-            }
-            animationId = requestAnimationFrame(animate);
-        };
-
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        window.addEventListener('mousemove', handleMouseMove);
-        animate();
-
-        return () => {
-            window.removeEventListener('resize', handleResize);
-            window.removeEventListener('mousemove', handleMouseMove);
-            cancelAnimationFrame(animationId);
-        };
-    }, []);
-
-    // --- GSAP text reveal ---
-    useEffect(() => {
-        const animateReveal = () => {
-            const titleEl = titleRef.current;
-            const subtitleEl = subtitleRef.current;
-            if (!titleEl || !subtitleEl) return;
-
-            const titleSplit = new SplitText(titleEl, { type: 'chars' });
-            const titleChars = titleSplit.chars;
-
-            const tl = gsap.timeline({ delay: 0.5 });
-            tl.to('.hero-content', {
-                opacity: 1,
-                y: 0,
-                duration: 1,
-                ease: 'power1.inOut',
+                if (!readyFired.current) {
+                    readyFired.current = true;
+                    onReady?.();
+                }
             })
-            .to('.hero-text-scroll', {
-                duration: 1,
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-                ease: 'circ.out',
-            }, '-=0.5')
-            .from(titleChars, {
-                yPercent: 200,
-                stagger: 0.02,
-                duration: 0.8,
-                ease: 'power2.out',
-            }, '-=0.5');
-
-            return () => titleSplit.revert();
-        };
-
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(animateReveal);
-        } else {
-            animateReveal();
-        }
-    }, []);
-
-    // --- Scramble effect on hover/focus ---
-    useEffect(() => {
-        const titleEl = titleRef.current;
-        const subtitleEl = subtitleRef.current;
-        if (!titleEl || !subtitleEl) return;
-
-        const handleScramble = (e) => {
-            const target = e.currentTarget;
-            if (!gsap.isTweening(target) && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-                gsap.to(target, {
-                    duration: 0.8,
-                    ease: 'sine.in',
-                    scrambleText: {
-                        text: target.innerText,
-                        speed: 2,
-                        chars: defaultChars,
-                    },
-                });
-            }
-        };
-
-        titleEl.addEventListener('mouseenter', handleScramble);
-        titleEl.addEventListener('focus', handleScramble);
-        subtitleEl.addEventListener('mouseenter', handleScramble);
-        subtitleEl.addEventListener('focus', handleScramble);
+            .catch((err) => {
+                console.error('Mars3D load error:', err);
+            });
 
         return () => {
-            titleEl.removeEventListener('mouseenter', handleScramble);
-            titleEl.removeEventListener('focus', handleScramble);
-            subtitleEl.removeEventListener('mouseenter', handleScramble);
-            subtitleEl.removeEventListener('focus', handleScramble);
+            cancelled = true;
+            if (groupRef.current) {
+                [...groupRef.current.children].forEach((c) => groupRef.current.remove(c));
+            }
         };
-    }, []);
-
-    // --- Mouse‑following effect for title and subtitle ---
-    useEffect(() => {
-        const title = titleRef.current;
-        const subtitle = subtitleRef.current;
-        if (!title || !subtitle) return;
-
-        const handleMouseMove = (e) => {
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            // Map mouse position to offset between -15px and 15px
-            const offsetX = ((e.clientX - centerX) / centerX) * 15;
-            const offsetY = ((e.clientY - centerY) / centerY) * 15;
-            title.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0)`;
-            subtitle.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0)`;
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
     return (
-        <main className="w-full h-dvh flex justify-center items-center md:h-screen mx-auto overflow-hidden relative">
-            {/* Star field canvas */}
-            <canvas
-                ref={canvasRef}
-                className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                style={{ zIndex: 5 }}
-            />
+        <>
+            <directionalLight position={[-3, 4.5, 3]} intensity={3.4} color="#FFCF92" />
+            <directionalLight position={[4, -2, 1]} intensity={0.2} color="#FF7A2F" />
+            <ambientLight intensity={0.05} color="#FF9055" />
+            <group ref={groupRef} scale={1.7} />
+        </>
+    );
+}
 
-            {/* Background GIF */}
-            <img
-                src="https://i.pinimg.com/originals/57/d0/4e/57d04ec2fb7c183adfe167887718bede.gif"
-                alt="Mars background"
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 object-auto scale-150 md:scale-180 mix-blend-screen pointer-events-none"
-                style={{ zIndex: 1 }}
-            />
+// ─── Main Hero Page with Tailwind CSS ────────────────────────────────────────
+export default function HeroPage() {
+    const topNavRef = useRef(null);
+    const canvasWrapperRef = useRef(null);
+    const headingRef = useRef(null);
+    const bottomLeftRef = useRef(null);
+    const buttonRef = useRef(null);
+    const bottomRightRef = useRef(null);
 
-            {/* Main content */}
-            <div className="hero-container relative z-10">
-                <div
-                    className="hero-content text-center"
-                    style={{ opacity: 0, transform: 'translateY(20px)' }}
+    const handleMarsReady = () => {
+        gsap.fromTo(
+            topNavRef.current,
+            { opacity: 0, x: -28 },
+            { opacity: 1, x: 0, duration: 1.0, ease: 'power2.out', delay: 0.1 }
+        );
+
+        gsap.fromTo(
+            canvasWrapperRef.current,
+            { opacity: 0, scale: 0.97 },
+            { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out', delay: 0.2 }
+        );
+
+        gsap.fromTo(
+            headingRef.current,
+            { opacity: 0, y: 44 },
+            { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: 0.5 }
+        );
+
+        gsap.fromTo(
+            [bottomLeftRef.current, buttonRef.current, bottomRightRef.current],
+            { opacity: 0, y: 18 },
+            { opacity: 1, y: 0, duration: 1.0, stagger: 0.15, ease: 'power2.out', delay: 0.9 }
+        );
+    };
+
+    // Global styles for reset and nav fix – include these in your main CSS file
+    // or add a <style> tag in the component if preferred.
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+      *, *::before, *::after { box-sizing: border-box; }
+      body, html {
+        background-color: #18120F;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* Fix for Nav.jsx conflict */
+      body > #root > nav,
+      body > #root > header {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: transparent !important;
+        pointer-events: none;
+      }
+    `;
+        document.head.appendChild(style);
+        return () => document.head.removeChild(style);
+    }, []);
+
+    return (
+        <div
+            className="min-h-screen w-screen mx-[calc(50%-50vw)] bg-[#18120F] relative flex flex-col items-center overflow-hidden z-10"
+        >
+            {/* Top Nav */}
+            <div
+                ref={topNavRef}
+                className="absolute top-[40px] left-[5vw] right-[5vw] flex items-center gap-4 z-10 opacity-0"
+            >
+                <CompassStarIcon />
+                <div className="h-px flex-1 bg-[rgba(246,243,231,0.3)]" />
+            </div>
+
+            {/* Canvas Wrapper with radial gradient via ::after */}
+            <div
+                ref={canvasWrapperRef}
+                className="relative w-[95vw] max-w-[1200px] h-[62vw] max-h-[860px] mt-[100px]  z-5 opacity-0
+                   after:content-[''] after:absolute after:inset-0 after:bg-[radial-gradient(ellipse_90%_48%_at_50%_100%,#18120F_0%,transparent_62%)] after:pointer-events-none after:z-2
+                   lg:w-[82vw] lg:h-[76vw]
+                   max-md:w-[100vw] max-md:h-[96vw] max-md:mt-[70px] max-md:mt-[250px]"
+            >
+                <Canvas
+                    camera={{ position: [0, 0, 4], fov: 50 }}
+                    gl={{ antialias: true, powerPreference: 'high-performance', alpha: true }}
+                    style={{ background: 'transparent', width: '100%', height: '100%', scale: 0.95 }}
                 >
-                    <div className="overflow-hidden">
-                        <h1
-                            ref={titleRef}
-                            className="hero-title font-mono font-extrabold"
-                            tabIndex={0}
-                        >
-                            Journey to
-                        </h1>
-                    </div>
+                    <OrbitControls
+                        enableZoom={false}
+                        enablePan={false}
+                        enableRotate={true}
+                        zoomSpeed={1.0}
+                        rotateSpeed={0.8}
+                        panSpeed={0.8}
+                        target={[0, 0, 0]}
+                    />
+                    <Mars3D onReady={handleMarsReady} />
+                </Canvas>
+            </div>
 
-                    <div
-                        style={{
-                            clipPath: 'polygon(50% 0%, 50% 0%, 50% 100%, 50% 100%)',
-                        }}
-                        className="hero-text-scroll"
+            {/* Heading */}
+            <h1
+                ref={headingRef}
+                className="font-['Orbitron','Russo_One',sans-serif] text-[clamp(48px,10vw,200px)] font-black text-[#F6F3E7] tracking-[-0.04em] leading-none uppercase  z-20 opacity-0 text-center font-extrabold
+         lg:text-[15vw]  lg:-mt-[170vh] xl:-mt-[60vh] xl:text-[15vw] 2xl:text-[10vw]
+        max-md:text-7xl max-md:-mt-[250px]"
+            >
+                MARS
+            </h1>
+
+            {/* Bottom Row */}
+            <div
+                className="absolute bottom-[48px] left-[5vw] right-[5vw] flex justify-between items-center z-10
+                   max-md:flex-col max-md:gap-6 max-md:relative max-md:bottom-auto max-md:mt-auto max-md:pb-8"
+            >
+                <div
+                    ref={bottomLeftRef}
+                    className="flex items-center gap-2.5 opacity-0 [&_.text]:font-['Inter'] [&_.text]:text-[15px] [&_.text]:font-normal [&_.text]:text-[rgba(246,243,231,0.6)] [&_.text]:whitespace-nowrap [&_.text]:tracking-[0.01em]"
+                >
+                    <div className="w-3 h-3 border-2 border-[rgba(246,243,231,0.55)] rounded-full flex-shrink-0" />
+                    <span className="text">Phobos &amp; Deimos</span>
+                </div>
+
+                <div
+                    ref={buttonRef}
+                    className="opacity-0 -ml-[100px] max-md:w-full"
+                >
+                    <button
+                        className="bg-[#F6F3E7] text-[#18120F] font-['Inter'] text-[15px] font-medium py-3 px-[34px] rounded-full border-none cursor-pointer
+                       transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(246,243,231,0.18)]
+                       flex items-center justify-center tracking-wide max-md:w-full  max-md:ml-[10vw] "
                     >
-                        <div className="hero-subtitle font-mono font-extrabold text-red">
-                            <h1
-                                ref={subtitleRef}
-                                className="text-nowrap"
-                                tabIndex={0}
-                            >
-                                Mars
-                            </h1>
-                        </div>
-                    </div>
+                        Explore Surface
+                    </button>
+                </div>
 
-                    <h2 className="font-mono">
-                        Fuel your ambition with the legendary spaceship that refreshes your soul and keeps you moving forward
-                    </h2>
+                <div
+                    ref={bottomRightRef}
+                    className="flex items-center gap-2 opacity-0 [&_.text]:font-['Inter'] [&_.text]:text-[14px] [&_.text]:font-normal [&_.text]:text-[rgba(246,243,231,0.6)] [&_.text]:whitespace-nowrap [&_.text]:tracking-wide"
+                >
+                    <span className="text">0.107 M</span>
+                    <PlanetIconSVG />
                 </div>
             </div>
-        </main>
+        </div>
     );
-};
-
-export default HeroPage;
+}
